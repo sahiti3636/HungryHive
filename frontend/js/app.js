@@ -30,17 +30,7 @@ const emptyResultsState = document.getElementById('empty-results-state');
 const mobileMenuBtn = document.getElementById('mobileMenuBtn');
 const mobileMenu = document.getElementById('mobileMenu');
 
-// --- Firebase Configuration ---
-// PASTE YOUR firebaseConfig OBJECT HERE
-// const firebaseConfig = {
-//     apiKey: "YOUR_API_KEY",
-//     authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-//     databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com", // Check this URL
-//     projectId: "YOUR_PROJECT_ID",
-//     storageBucket: "YOUR_PROJECT_ID.appspot.com",
-//     messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-//     appId: "YOUR_APP_ID"
-// };
+
 const firebaseConfig = {
     apiKey: "AIzaSyBsFaY2PHl85XmcRwHyYauvd8TWEal5Ke0",
     authDomain: "dining-4758f.firebaseapp.com",
@@ -321,46 +311,7 @@ function displayResults(results) {
      scrollToSection('recommendations');
 }
 
-// ==================== VOTING & RANDOM SELECTION ====================
-// function displayRestaurants(options) {
-//     if (!restaurantList) return;
-//     restaurantList.innerHTML = '';
-//     detachFirebaseListeners();
 
-//     currentRestaurantOptions = (options || []).map((opt, index) => {
-//         let key = `option-${index}`;
-//         if (opt.name) { key = opt.name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_'); const lat = opt.gps_coordinates?.latitude; const lon = opt.gps_coordinates?.longitude; if (lat != null && lon != null) { const latStr = String(lat).replace('.','_'); const lonStr = String(lon).replace('.','_'); key += `_${latStr}_${lonStr}`; } key = key.substring(0, 100); }
-//         opt.voteKey = key; return opt;
-//     });
-
-//     if (currentRestaurantOptions.length === 0) {
-//         restaurantList.innerHTML = '<li>No specific restaurant options found.</li>';
-//         if (randomPickButton) randomPickButton.style.display = 'none'; // Use correct ID
-//         return;
-//     }
-
-//     currentRestaurantOptions.forEach(option => {
-//         const voteKey = option.voteKey;
-//         const li = document.createElement('li'); li.dataset.voteKey = voteKey;
-//         const infoDiv = document.createElement('div'); infoDiv.className = 'restaurant-info';
-//         const mapsLinkHtml = option.link ? `<br><a href="${option.link}" target="_blank">View on Maps</a>` : '';
-//         infoDiv.innerHTML = `<strong>${option.name || 'Unknown'}</strong><br><small>${option.address || 'N/A'}</small><br><small>Rating: ${option.rating ?? 'N/A'}</small>${mapsLinkHtml}`;
-//         const voteDiv = document.createElement('div'); voteDiv.className = 'vote-section';
-//         const voteCountSpan = document.createElement('span'); voteCountSpan.className = 'vote-count'; voteCountSpan.id = `votes-${voteKey}`; voteCountSpan.textContent = 'Votes: 0';
-//         const voteBtn = document.createElement('button'); voteBtn.className = 'vote-button'; voteBtn.textContent = 'Vote 👍'; voteBtn.onclick = () => handleVote(voteKey);
-//         voteDiv.appendChild(voteCountSpan); voteDiv.appendChild(voteBtn); li.appendChild(infoDiv); li.appendChild(voteDiv); restaurantList.appendChild(li);
-
-//         if (database && currentGroupId) {
-//             const voteRef = database.ref(`groups/${currentGroupId}/votes/${voteKey}/count`);
-//             const listener = voteRef.on('value', snapshot => { const count = snapshot.val() || 0; const span = document.getElementById(`votes-${voteKey}`); if (span) span.textContent = `Votes: ${count}`; }, error => console.error("FB read err", voteKey, error));
-//             firebaseListeners.push({ ref: voteRef, listener });
-//         } else { voteBtn.disabled = true; voteBtn.textContent = "Voting N/A"; voteBtn.style.backgroundColor = "#ccc"; }
-//     });
-
-//     // Show random pick button
-//     if (randomPickButton) randomPickButton.style.display = 'block'; // Use correct ID
-//     if (randomResultDisplay) randomResultDisplay.textContent = '';
-// }
 
 // ==================== VOTING & RANDOM SELECTION ====================
 function displayRestaurants(options) {
