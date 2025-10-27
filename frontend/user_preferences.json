@@ -1,0 +1,222 @@
+[
+  {
+    "name": "Alice",
+    "latitude": 12.971598,
+    "longitude": 77.594566,
+    "hunger_level": 5,
+    "spice_level": 4,
+    "indian_craving": 5,
+    "pan_asian_craving": 2,
+    "italian_craving": 3,
+    "mexican_craving": 1,
+    "american_craving": 4,
+    "spanish_craving": 2,
+    "french_craving": 3,
+    "middle_eastern_craving": 2,
+    "diet": "Veg",
+    "drink_preferences": {
+      "mocktail": "Virgin Mojito",
+      "juice": "Mango Juice",
+      "cocktail": "Martini",
+      "alcohol": "Red Wine"
+    }
+  },
+  {
+    "name": "Bob",
+    "latitude": 12.935223,
+    "longitude": 77.624480,
+    "hunger_level": 2,
+    "spice_level": 1,
+    "indian_craving": 1,
+    "pan_asian_craving": 4,
+    "italian_craving": 5,
+    "mexican_craving": 2,
+    "american_craving": 3,
+    "spanish_craving": 2,
+    "french_craving": 4,
+    "middle_eastern_craving": 3,
+    "diet": "Non-Veg",
+    "drink_preferences": {
+      "mocktail": "Blue Lagoon",
+      "juice": "Orange Juice",
+      "cocktail": "Negroni",
+      "alcohol": "Whiskey"
+    }
+  },
+  {
+    "name": "Charlie",
+    "latitude": 12.949632,
+    "longitude": 77.585526,
+    "hunger_level": 4,
+    "spice_level": 5,
+    "indian_craving": 2,
+    "pan_asian_craving": 5,
+    "italian_craving": 1,
+    "mexican_craving": 2,
+    "american_craving": 2,
+    "spanish_craving": 3,
+    "french_craving": 1,
+    "middle_eastern_craving": 2,
+    "diet": "Veg",
+    "drink_preferences": {
+      "mocktail": "Cucumber Cooler",
+      "juice": "Pineapple Juice",
+      "cocktail": "Whiskey Sour",
+      "alcohol": "Gin"
+    }
+  },
+  {
+    "name": "David",
+    "latitude": 12.956281,
+    "longitude": 77.701118,
+    "hunger_level": 3,
+    "spice_level": 2,
+    "indian_craving": 1,
+    "pan_asian_craving": 3,
+    "italian_craving": 3,
+    "mexican_craving": 5,
+    "american_craving": 3,
+    "spanish_craving": 4,
+    "french_craving": 2,
+    "middle_eastern_craving": 1,
+    "diet": "Non-Veg",
+    "drink_preferences": {
+      "mocktail": "Virgin Pina Colada",
+      "juice": "Watermelon Juice",
+      "cocktail": "Margarita",
+      "alcohol": "Tequila"
+    }
+  },
+  {
+    "name": "Eve",
+    "latitude": 13.006395,
+    "longitude": 77.569706,
+    "hunger_level": 1,
+    "spice_level": 1,
+    "indian_craving": 2,
+    "pan_asian_craving": 1,
+    "italian_craving": 5,
+    "mexican_craving": 2,
+    "american_craving": 4,
+    "spanish_craving": 2,
+    "french_craving": 3,
+    "middle_eastern_craving": 2,
+    "diet": "Veg",
+    "drink_preferences": {
+      "mocktail": "Strawberry Fizz",
+      "juice": "Apple Juice",
+      "cocktail": "Cosmopolitan",
+      "alcohol": "Vodka"
+    }
+  },
+  {
+    "name": "Frank",
+    "latitude": 12.984501,
+    "longitude": 77.660084,
+    "hunger_level": 5,
+    "spice_level": 5,
+    "indian_craving": 5,
+    "pan_asian_craving": 4,
+    "italian_craving": 1,
+    "mexican_craving": 1,
+    "american_craving": 3,
+    "spanish_craving": 2,
+    "french_craving": 1,
+    "middle_eastern_craving": 3,
+    "diet": "Non-Veg",
+    "drink_preferences": {
+      "mocktail": "Spiced Lemonade",
+      "juice": "Guava Juice",
+      "cocktail": "Old Fashioned",
+      "alcohol": "Rum"
+    }
+  },
+  {
+    "name": "Hannah",
+    "latitude": 13.015132,
+    "longitude": 77.599290,
+    "hunger_level": 2,
+    "spice_level": 3,
+    "indian_craving": 1,
+    "pan_asian_craving": 4,
+    "italian_craving": 3,
+    "mexican_craving": 2,
+    "american_craving": 4,
+    "spanish_craving": 1,
+    "french_craving": 3,
+    "middle_eastern_craving": 2,
+    "diet": "Veg",
+    "drink_preferences": {
+      "mocktail": "Citrus Cooler",
+      "juice": "Pomegranate Juice",
+      "cocktail": "Bellini",
+      "alcohol": "Champagne"
+    }
+  },
+  {
+    "name": "Ian",
+    "latitude": 12.938960,
+    "longitude": 77.607524,
+    "hunger_level": 4,
+    "spice_level": 3,
+    "indian_craving": 4,
+    "pan_asian_craving": 2,
+    "italian_craving": 2,
+    "mexican_craving": 4,
+    "american_craving": 5,
+    "spanish_craving": 3,
+    "french_craving": 4,
+    "middle_eastern_craving": 2,
+    "diet": "Non-Veg",
+    "drink_preferences": {
+      "mocktail": "Mint Cooler",
+      "juice": "Cranberry Juice",
+      "cocktail": "Mojito",
+      "alcohol": "Beer"
+    }
+  },
+  {
+    "name": "Kate",
+    "latitude": 13.023028,
+    "longitude": 77.590800,
+    "hunger_level": 3,
+    "spice_level": 4,
+    "indian_craving": 3,
+    "pan_asian_craving": 2,
+    "italian_craving": 2,
+    "mexican_craving": 5,
+    "american_craving": 3,
+    "spanish_craving": 4,
+    "french_craving": 3,
+    "middle_eastern_craving": 1,
+    "diet": "Veg",
+    "drink_preferences": {
+      "mocktail": "Peach Iced Tea",
+      "juice": "Lychee Juice",
+      "cocktail": "Sangria",
+      "alcohol": "Sake"
+    }
+  },
+  {
+    "name": "Leo",
+    "latitude": 12.961115,
+    "longitude": 77.638456,
+    "hunger_level": 5,
+    "spice_level": 5,
+    "indian_craving": 5,
+    "pan_asian_craving": 5,
+    "italian_craving": 1,
+    "mexican_craving": 2,
+    "american_craving": 4,
+    "spanish_craving": 2,
+    "french_craving": 1,
+    "middle_eastern_craving": 3,
+    "diet": "Non-Veg",
+    "drink_preferences": {
+      "mocktail": "Lime Spritzer",
+      "juice": "Mango Juice",
+      "cocktail": "Long Island Iced Tea",
+      "alcohol": "Tequila"
+    }
+  }
+]

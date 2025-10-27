@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered group dining recommendation platform">
+    <meta name="theme-color" content="#FF6B6B">
+    <title>HungryHive - Smart Group Dining</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <style>
+        /* Styles from style.css might cover these, but include for safety */
+        /* Landing Page Styles */
+        #landingPage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 90vh;
+            /* Make it take most of the viewport height */
+            text-align: center;
+            padding: 2rem;
+            /* --- ADD BACKGROUND IMAGE PROPERTIES --- */
+            background-image: url('9805766.jpg');
+            /* <-- REPLACE THIS PATH */
+            background-size: cover;
+            /* Scale the image to cover the entire element */
+            background-position: center center;
+            /* Center the image */
+            background-repeat: no-repeat;
+            /* Prevent the image from repeating */
+            position: relative;
+            /* Needed for potential overlay */
+            /* --- END BACKGROUND IMAGE PROPERTIES --- */
+        }
+
+        /* Optional: Add a semi-transparent overlay if the text is hard to read */
+        #landingPage::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            /* Adjust darkness (0.0 to 1.0) */
+            z-index: 1;
+            /* Place overlay behind content */
+        }
+
+        /* Ensure landing box content is above the overlay */
+        .landing-box {
+            position: relative;
+            /* Make sure content is layered above pseudo-element */
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.9);
+            /* Make box slightly transparent */
+            /* Keep existing landing-box styles */
+            padding: 2rem 3rem;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            margin-top: 1.5rem;
+            max-width: 500px;
+        }
+
+        #appContent {
+            display: none;
+            /* Initially hidden */
+        }
+
+        .landing-box {
+            background: var(--white);
+            padding: 2rem 3rem;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            margin-top: 1.5rem;
+        }
+
+        .landing-box h2 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        #groupIdInput {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--light);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        .landing-buttons button {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        #currentGroupInfo {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 900;
+            font-size: 0.9em;
+            color: var(--dark);
+            display: none;
+        }
+
+        #currentGroupInfo strong {
+            color: var(--primary);
+        }
+
+        #leaveGroupBtn {
+            margin-left: 10px;
+            font-size: 0.8em;
+            padding: 2px 5px;
+            cursor: pointer;
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        /* Voting Styles */
+        .vote-section {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .vote-button {
+            padding: 6px 12px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            margin-left: 10px;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+        }
+
+        .vote-button:hover {
+            background-color: #218838;
+        }
+
+        .vote-count {
+            font-weight: bold;
+            margin-left: 10px;
+            font-size: 1em;
+            color: #555;
+        }
+
+        #restaurant-list li .restaurant-info a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        /* Random Pick Styles */
+        #randomPickBtn {
+            padding: 10px 20px;
+            background-color: #ffc107;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1em;
+            transition: background-color 0.2s;
+            color: #333;
+            display: none;
+        }
+
+        #randomPickBtn:hover {
+            background-color: #e0a800;
+        }
+
+        #randomResult {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 1.2em;
+            color: #dc3545;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: #eee;
+            margin: 30px 0;
+        }
+
+        #loading-text {
+            color: #007bff;
+            text-align: center;
+        }
+
+        #plot-image {
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid #ddd;
+            margin: 20px auto;
+            display: block;
+            border-radius: 4px;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            max-width: 950px;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        h1,
+        h2,
+        h3 {
+            text-align: center;
+            color: #444;
+        }
+
+        #app-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        #controls {
+            flex: 1;
+            min-width: 300px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #results {
+            flex: 2;
+            min-width: 400px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #user-data-input {
+            width: 95%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        #analyze-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+
+        #analyze-button:hover {
+            background-color: #0056b3;
+        }
+
+        #analyze-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #ai-message {
+            font-style: italic;
+            font-size: 1.1em;
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+
+        #restaurant-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        #restaurant-list li {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: box-shadow 0.2s;
+        }
+
+        #restaurant-list li:hover {
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .restaurant-info {
+            flex-grow: 1;
+            margin-right: 15px;
+        }
+
+        .restaurant-info strong {
+            font-size: 1.1em;
+            color: #0056b3;
+        }
+
+        .restaurant-info small {
+            color: #6c757d;
+            display: block;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand"><i class="fas fa-utensils"></i><span>HungryHive</span></div>
+            <div class="nav-links">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#preferences" class="nav-link">Preferences</a>
+                <a href="#group" class="nav-link">Group</a>
+                <a href="#recommendations" class="nav-link">Results</a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+        </div>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#home" class="mobile-link">Home</a>
+        <a href="#preferences" class="mobile-link">Preferences</a>
+        <a href="#group" class="mobile-link">Group</a>
+        <a href="#recommendations" class="mobile-link">Results</a>
+    </div>
+
+    <div id="currentGroupInfo">
+        Current Group ID: <strong id="displayGroupId">N/A</strong>
+        <button id="leaveGroupBtn">Leave Group</button>
+    </div>
+
+    <div id="landingPage">
+        <div class="landing-box">
+            <h2>Welcome to HungryHive!</h2>
+            <p style="color: var(--gray); margin-bottom: var(--space-lg);">Join or create a group to find the perfect
+                meal together.</p>
+            <div class="landing-buttons">
+                <button class="btn btn-primary btn-large" id="createGroupBtn"><i class="fas fa-plus-circle"></i> Create
+                    New Group</button>
+            </div>
+            <hr style="margin: var(--space-lg) 0;">
+            <h3>Join Existing Group</h3>
+            <input type="text" id="groupIdInput" placeholder="Enter Group ID" aria-label="Group ID">
+            <button class="btn btn-secondary btn-large" id="joinGroupBtn"><i class="fas fa-sign-in-alt"></i> Join
+                Group</button>
+        </div>
+    </div>
+
+    <div id="appContent">
+
+        <section id="home" class="hero-section">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1 class="hero-title"><span class="gradient-text">Smart Dining</span><br>for Groups</h1>
+                        <p class="hero-subtitle">AI recommendations to maximize satisfaction and minimize waste.</p>
+                        <div class="hero-buttons"> <button class="btn btn-primary"
+                                onclick="scrollToSection('preferences')"><i class="fas fa-edit"></i> Add
+                                Preferences</button> <button class="btn btn-secondary"
+                                onclick="scrollToSection('group')"><i class="fas fa-users"></i> View Group</button>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="stat-item">
+                                <div class="stat-number" id="groupCount">0</div>
+                                <div class="stat-label">Members</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">AI</div>
+                                <div class="stat-label">Powered</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">Eco</div>
+                                <div class="stat-label">Friendly</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <div class="floating-card card-1"><i class="fas fa-pizza-slice"></i><span>Italian</span></div>
+                        <div class="floating-card card-2"><i class="fas fa-burger"></i><span>American</span></div>
+                        <div class="floating-card card-3"><i class="fas fa-bowl-rice"></i><span>Asian</span></div>
+                        <div class="floating-card card-4"><i class="fas fa-pepper-hot"></i><span>Spicy</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="preferences" class="preferences-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Your Food Preferences</h2>
+                    <p class="section-subtitle">Help the AI find the best match!</p>
+                </div>
+                <div class="preferences-form">
+                    <form id="preferencesForm">
+                        <div class="form-group"> <label for="userName"><i class="fas fa-user"></i> Your Name</label>
+                            <input type="text" id="userName" name="userName" placeholder="Enter your name" required>
+                        </div>
+                        <div class="form-group"> <label><i class="fas fa-map-marker-alt"></i> Your Location</label>
+                            <button type="button" class="btn btn-secondary btn-small" id="getLocationBtn">Use Current
+                                Location</button> <small id="locationStatus" class="label-hint">Click to capture
+                                location (required)</small> <input type="hidden" id="latitude" name="latitude"> <input
+                                type="hidden" id="longitude" name="longitude">
+                        </div>
+                        <div class="form-group"> <label><i class="fas fa-utensils"></i> Cuisine Cravings (0=No, 5=Must
+                                Have)</label>
+                            <div class="cuisine-sliders">
+                                <div class="slider-item">
+                                    <div class="slider-header"><span>🍛 Indian</span><span class="slider-value"
+                                            id="indian_cravingValue">3</span></div><input type="range" min="0" max="5"
+                                        value="3" class="slider" id="indian_craving" name="indian_craving">
+                                </div>
+                                <div class="slider-item">
+                                    <div class="slider-header"><span>🍜 Pan-Asian</span><span class="slider-value"
+                                            id="pan_asian_cravingValue">3</span></div><input type="range" min="0"
+                                        max="5" value="3" class="slider" id="pan_asian_craving"
+                                        name="pan_asian_craving">
+                                </div>
+                                <div class="slider-item">
+                                    <div class="slider-header"><span>🍕 Italian</span><span class="slider-value"
+                                            id="italian_cravingValue">3</span></div><input type="range" min="0" max="5"
+                                        value="3" class="slider" id="italian_craving" name="italian_craving">
+                                </div>
+                                <div class="slider-item">
+                                    <div class="slider-header"><span>🌮 Mexican</span><span class="slider-value"
+                                            id="mexican_cravingValue">3</span></div><input type="range" min="0" max="5"
+                                        value="3" class="slider" id="mexican_craving" name="mexican_craving">
+                                </div>
+                                <div class="slider-item">
+                                    <div class="slider-header"><span>🍔 American</span><span class="slider-value"
+                                            id="american_cravingValue">3</span></div><input type="range" min="0" max="5"
+                                        value="3" class="slider" id="american_craving" name="american_craving">
+                                </div>
+                                <div class="slider-item">
+                                    <div class="slider-header"><span>🥘 Spanish</span><span class="slider-value"
+                                            id="spanish_cravingValue">3</span></div><input type="range" min="0" max="5"
+                                        value="3" class="slider" id="spanish_craving" name="spanish_craving">
+                                </div>
+                                <div class="slider-item">
+                                    <div class="slider-header"><span>🥐 French</span><span class="slider-value"
+                                            id="french_cravingValue">3</span></div><input type="range" min="0" max="5"
+                                        value="3" class="slider" id="french_craving" name="french_craving">
+                                </div>
+                                <div class="slider-item">
+                                    <div class="slider-header"><span><i class="fa-solid fa-plate-wheat"></i> Middle
+                                            Eastern</span><span class="slider-value"
+                                            id="middle_eastern_cravingValue">3</span></div><input type="range" min="0"
+                                        max="5" value="3" class="slider" id="middle_eastern_craving"
+                                        name="middle_eastern_craving">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group"> <label><i class="fas fa-drumstick-bite"></i> Hunger Level</label>
+                            <div class="hunger-options"> <label class="radio-card"><input type="radio"
+                                        name="hunger_level" value="1">
+                                    <div class="radio-content"><i
+                                            class="fas fa-cookie-bite"></i><span>1-2</span><small>Light</small></div>
+                                </label> <label class="radio-card"><input type="radio" name="hunger_level" value="3"
+                                        checked>
+                                    <div class="radio-content"><i
+                                            class="fas fa-plate-wheat"></i><span>3</span><small>Medium</small></div>
+                                </label> <label class="radio-card"><input type="radio" name="hunger_level" value="5">
+                                    <div class="radio-content"><i
+                                            class="fas fa-bowl-food"></i><span>4-5</span><small>Heavy</small></div>
+                                </label> </div>
+                        </div>
+                        <div class="form-group"> <label><i class="fas fa-glass-cheers"></i> Drink Preferences
+                                (Optional)</label>
+                            <div class="drink-options">
+                                <div class="drink-item">
+                                    <label for="mocktail_pref">Mocktail:</label>
+                                    <select name="mocktail" id="mocktail_pref" class="drink-select">
+                                        <option value="">None</option>
+                                        <option value="Virgin Mojito">Virgin Mojito</option>
+                                        <option value="Fruit Punch">Fruit Punch</option>
+                                        <option value="Shirley Temple">Shirley Temple</option>
+                                        <option value="Strawberry Daiquiri (Virgin)">Strawberry Daiquiri (Virgin)
+                                        </option>
+                                        <option value="Pina Colada (Virgin)">Pina Colada (Virgin)</option>
+                                        <option value="Iced Tea">Iced Tea</option>
+                                        <option value="Lemonade">Lemonade</option>
+                                        <option value="Mint Cooler">Mint Cooler</option>
+                                        <option value="Blue Lagoon (Virgin)">Blue Lagoon (Virgin)</option>
+                                        <option value="Berry Blast">Berry Blast</option>
+                                        <option value="Cucumber Cooler">Cucumber Cooler</option>
+                                        <option value="Other">Other Mocktail</option>
+                                    </select>
+                                </div>
+
+                                <div class="drink-item">
+                                    <label for="juice_pref">Juice:</label>
+                                    <select name="juice" id="juice_pref" class="drink-select">
+                                        <option value="">None</option>
+                                        <option value="Orange Juice">Orange Juice</option>
+                                        <option value="Mango Juice">Mango Juice</option>
+                                        <option value="Apple Juice">Apple Juice</option>
+                                        <option value="Pineapple Juice">Pineapple Juice</option>
+                                        <option value="Cranberry Juice">Cranberry Juice</option>
+                                        <option value="Watermelon Juice">Watermelon Juice</option>
+                                        <option value="Pomegranate Juice">Pomegranate Juice</option>
+                                        <option value="Grape Juice">Grape Juice</option>
+                                        <option value="Lime Juice">Lime Juice</option>
+                                        <option value="Carrot Juice">Carrot Juice</option>
+                                        <option value="Mixed Fruit Juice">Mixed Fruit Juice</option>
+                                        <option value="Other">Other Juice</option>
+                                    </select>
+                                </div>
+
+                                <div class="drink-item">
+                                    <label for="cocktail_pref">Cocktail:</label>
+                                    <select name="cocktail" id="cocktail_pref" class="drink-select">
+                                        <option value="">None</option>
+                                        <option value="Margarita">Margarita</option>
+                                        <option value="Martini">Martini</option>
+                                        <option value="Mojito">Mojito</option>
+                                        <option value="Old Fashioned">Old Fashioned</option>
+                                        <option value="Cosmopolitan">Cosmopolitan</option>
+                                        <option value="Whiskey Sour">Whiskey Sour</option>
+                                        <option value="Long Island Iced Tea">Long Island Iced Tea</option>
+                                        <option value="Pina Colada">Pina Colada</option>
+                                        <option value="Bloody Mary">Bloody Mary</option>
+                                        <option value="Negroni">Negroni</option>
+                                        <option value="Mai Tai">Mai Tai</option>
+                                        <option value="Other">Other Cocktail</option>
+                                    </select>
+                                </div>
+
+                                <div class="drink-item">
+                                    <label for="alcohol_pref">Alcohol:</label>
+                                    <select name="alcohol" id="alcohol_pref" class="drink-select">
+                                        <option value="">None</option>
+                                        <option value="Beer">Beer</option>
+                                        <option value="Wine">Wine</option>
+                                        <option value="Whiskey">Whiskey</option>
+                                        <option value="Vodka">Vodka</option>
+                                        <option value="Gin">Gin</option>
+                                        <option value="Rum">Rum</option>
+                                        <option value="Tequila">Tequila</option>
+                                        <option value="Brandy">Brandy</option>
+                                        <option value="Champagne">Champagne</option>
+                                        <option value="Scotch">Scotch</option>
+                                        <option value="Cider">Cider</option>
+                                        <option value="Other">Other Alcohol</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group"> <label><i class="fas fa-leaf"></i> Dietary Restrictions</label>
+                            <div class="dietary-tags"> <label class="tag-checkbox"><input type="radio" name="diet"
+                                        value="Veg" required><span class="tag">🥬 Veg</span></label> <label
+                                    class="tag-checkbox"><input type="radio" name="diet" value="Non-Veg" required><span
+                                        class="tag">🍗 Non-Veg</span></label> </div>
+                        </div>
+                        <div class="form-group"> <label><i class="fas fa-pepper-hot"></i> Spice Preference</label>
+                            <div class="spice-selector"> <label class="spice-option"><input type="radio"
+                                        name="spice_level" value="1"><span class="spice-label">😊 1
+                                        (Mild)</span></label> <label class="spice-option"><input type="radio"
+                                        name="spice_level" value="2"><span class="spice-label">😅 2</span></label>
+                                <label class="spice-option"><input type="radio" name="spice_level" value="3"
+                                        checked><span class="spice-label">🌶️ 3 (Medium)</span></label> <label
+                                    class="spice-option"><input type="radio" name="spice_level" value="4"><span
+                                        class="spice-label">🔥 4</span></label> <label class="spice-option"><input
+                                        type="radio" name="spice_level" value="5"><span class="spice-label">🌋 5
+                                        (Hot!)</span></label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-large"><i class="fas fa-user-plus"></i> Add Me
+                            to Group</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section id="group" class="group-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Group Dashboard</h2>
+                    <p class="section-subtitle">See who's in and ready!</p>
+                </div>
+                <div class="group-content">
+                    <div class="group-members">
+                        <div class="members-header">
+                            <h3><i class="fas fa-users"></i> Members <span class="badge" id="memberCountBadge">0</span>
+                            </h3> <button class="btn btn-small btn-secondary" onclick="clearGroup()"><i
+                                    class="fas fa-trash"></i> Clear</button>
+                        </div>
+                        <div class="members-list" id="membersList">
+                            <div class="empty-state"><i class="fas fa-user-plus"></i>
+                                <p>No members yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="group-insights">
+                        <h3><i class="fas fa-bullseye"></i> Next Step</h3>
+                        <div class="insight-card">
+                            <h4>Ready for Recommendations?</h4>
+                            <p>Once everyone's preferences are in, click below!</p>
+                            <div class="generate-section" style="margin-top: 20px;"> <button
+                                    class="btn btn-primary btn-large btn-glow" id="generateRecommendationsBtn"><i
+                                        class="fas fa-magic"></i> Find Restaurants!</button> </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="recommendations" class="recommendations-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Results & Voting</h2>
+                    <p class="section-subtitle">AI analysis and top picks!</p>
+                </div>
+                <div id="recommendationsContent" class="recommendations-content">
+                    <h3 id="loading-text" style="display: none;">Analyzing...</h3>
+                    <div id="results-content" style="display: none;">
+                        <div class="recommendation-card">
+                            <h3><i class="fas fa-robot"></i> AI Summary</h3>
+                            <p id="ai-message"></p>
+                            <hr>
+                            <h4><i class="fas fa-vote-yea"></i> Top Options - Vote!</h4>
+                            <ul id="restaurant-list"></ul>
+                            <button id="randomPickBtn" style="display: none;"><i class="fas fa-random"></i> Pick
+                                Randomly!</button>
+                            <p id="randomResult"></p>
+
+                        </div>
+                    </div>
+                    <div id="empty-results-state" class="empty-state" style="display: block;"> </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-brand"><i class="fas fa-utensils"></i><span>HungryHive</span></div>
+                    <p class="footer-text">Group Dining Made Simple</p>
+                    <div class="footer-links"> <a href="#"><i class="fab fa-github"></i></a> </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2025 HungryHive</p>
+                </div>
+            </div>
+        </footer>
+
+        <div class="toast" id="toast">
+            <div class="toast-content"><i class="fas fa-check-circle"></i><span id="toastMessage">Success!</span></div>
+        </div>
+
+    </div>
+    <script src="js/app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js') // Ensure sw.js is in root
+                    .then(reg => console.log('✅ SW Registered:', reg.scope))
+                    .catch(err => console.log('❌ SW Reg Error:', err));
+            });
+        }
+    </script>
+    <script>
+        document.addEventListener('scroll', () => {
+            document.querySelectorAll('section').forEach(sec => {
+                const rect = sec.getBoundingClientRect();
+                if (rect.top < window.innerHeight - 100) {
+                    sec.classList.add('visible');
+                }
+            });
+        });
+        </script>
+        
+</body>
+
+</html>

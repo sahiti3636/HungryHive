@@ -1,0 +1,12 @@
+flask
+flask-cors
+pandas
+scikit-learn
+numpy
+matplotlib
+google-generativeai
+kneed
+googlemaps
+requests
+google-search-results
+gunicorn

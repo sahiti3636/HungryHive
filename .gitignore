@@ -1,0 +1,18 @@
+# Python virtual environment
+venv/
+*.pyc
+__pycache__/
+
+# IDE/OS files
+.DS_Store
+.idea/
+*.swp
+
+# Local backend files
+latest_cluster_summary.json
+
+# Frontend dependencies (if using npm/node)
+# node_modules/
+
+# Any files containing secrets (though ideally use environment variables)
+# .env
