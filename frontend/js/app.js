@@ -290,7 +290,7 @@ async function generateRecommendations() {
     try {
         const dataToSend = groupMembers.map(({ id, ...rest }) => rest);
         console.log("Sending data to backend:", dataToSend);
-        const backendUrl = 'YOUR_RENDER_BACKEND_URL_HERE/analyze';
+        const backendUrl = 'https://hungryhive-549j.onrender.com/analyze';
         const response = await fetch('http://127.0.0.1:5000/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dataToSend) });
         if (!response.ok) { let err = `Backend Error ${response.status}`; try { const d = await response.json(); err += ` - ${d.error || response.statusText}`;} catch(e){} throw new Error(err); }
         const results = await response.json();
