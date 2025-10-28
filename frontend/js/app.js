@@ -161,12 +161,13 @@ function joinGroup(groupId) {
 }
 
 function leaveGroup() {
-    console.log("Leaving group:", currentGroupId);
-    if (currentGroupId) localStorage.removeItem(`feastfit_group_${currentGroupId}`);
-    localStorage.removeItem('feastfit_currentGroupId');
-    currentGroupId = null; groupMembers = []; currentRestaurantOptions = [];
-    resetResultsArea(); detachFirebaseListeners(); showLandingPage();
-    showToast("You have left the group.", "success");
+  console.log("Leaving group:", currentGroupId);
+  detachFirebaseListeners();
+  currentGroupId = null;
+  groupMembers = [];
+  localStorage.removeItem('feastfit_currentGroupId');
+  showLandingPage();
+  showToast("You have left the group.", "success");
 }
 
 function resetResultsArea() {
@@ -512,11 +513,31 @@ function scrollToSection(sectionId) { const section = document.getElementById(se
 function initializeMobileMenu() {
      if(mobileMenuBtn && mobileMenu) { mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.toggle('active')); document.addEventListener('click', (e) => { if (!mobileMenu.contains(e.target) && !mobileMenuBtn.contains(e.target)) mobileMenu.classList.remove('active'); }); }
 }
-function saveGroupToStorage() { if (!currentGroupId) return; try { localStorage.setItem(`feastfit_group_${currentGroupId}`, JSON.stringify(groupMembers)); console.log(`Saved group ${currentGroupId}`); } catch (e) { console.error("Save LS Error:", e); } }
+async function saveGroupToStorage() {
+  if (!database || !currentGroupId) return;
+  try {
+    await database.ref(`groups/${currentGroupId}/members`).set(groupMembers);
+    console.log("✅ Group members saved to Firebase:", groupMembers);
+  } catch (error) {
+    console.error("Error saving group to Firebase:", error);
+  }
+}
+
 function loadGroupFromStorage() {
-   groupMembers = []; if (!currentGroupId) return; const saved = localStorage.getItem(`feastfit_group_${currentGroupId}`);
-   if (saved) { try { const parsed = JSON.parse(saved); if (Array.isArray(parsed)) groupMembers = parsed; console.log(`Loaded ${groupMembers.length} for ${currentGroupId}`); } catch (e) { console.error('Parse LS Error:', e); } }
-   else { console.log(`No saved members for ${currentGroupId}`); }
+  if (!database || !currentGroupId) return;
+
+  const membersRef = database.ref(`groups/${currentGroupId}/members`);
+  
+  // Remove any previous listener for safety
+  detachFirebaseListeners();
+  const listener = membersRef.on('value', snapshot => {
+    const data = snapshot.val();
+    groupMembers = data ? Object.values(data) : [];
+    console.log("👥 Synced members from Firebase:", groupMembers);
+    updateGroupUI();
+  }, error => console.error("Firebase read error:", error));
+
+  firebaseListeners.push({ ref: membersRef, listener: listener });
 }
 
 // ==================== TOAST NOTIFICATIONS ====================
