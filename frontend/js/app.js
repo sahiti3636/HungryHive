@@ -278,7 +278,10 @@ async function generateRecommendations() {
     resetHighlights(); if (randomResultDisplay) randomResultDisplay.textContent = '';
 
     try {
-        const dataToSend = groupMembers.map(({ id, ...rest }) => rest);
+        const dataToSend = groupMembers.map(m => ({
+  ...m,
+  name: m.name || m.id || "Anonymous"
+}));
         console.log("Sending data to backend:", dataToSend);
         const backendUrl = 'https://hungryhive-549j.onrender.com/analyze';
         const response = await fetch('https://hungryhive-549j.onrender.com/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dataToSend) });
