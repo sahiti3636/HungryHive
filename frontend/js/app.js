@@ -151,23 +151,105 @@ function handleJoinGroupClick() {
 
 function joinGroup(groupId) {
     console.log("Joining group:", groupId);
-    currentGroupId = groupId;
-    localStorage.setItem('feastfit_currentGroupId', currentGroupId);
-    loadGroupFromStorage(); // Load members for this specific group ID
-    resetResultsArea(); // Clear out old results
-    detachFirebaseListeners(); // Clean up listeners from previous group
-    showAppContent(); // Switch the view
+    // Detach listeners from any previous group FIRST
+    detachFirebaseListeners(); 
+    detachMemberListener(); // Detach old member listener if exists
+
+    currentGroupId = groupId; // Set the global group ID
+    localStorage.setItem('feastfit_currentGroupId', currentGroupId); // Save for next visit
+
+    groupMembers = []; // **Clear local members array when joining**
+    currentRestaurantOptions = []; // Clear previous options
+    
+    resetResultsArea(); // Clear out old results display visually
+
+    // **Start listening for members in this group from Firebase**
+    listenForGroupMembers(); 
+
+    showAppContent(); // Switch the view AFTER starting listener setup
+    updateGroupUI(); // Update UI (will initially show 0 members until Firebase loads)
+
     showToast(`Joined Group: ${currentGroupId}`, 'success');
+    // Vote listeners will be attached later in displayRestaurants
+}
+
+// --- Global variable for the member listener ---
+let memberListenerRef = null; 
+let memberListenerCallback = null;
+
+function listenForGroupMembers() {
+    if (!database || !currentGroupId) {
+        console.error("Cannot listen for members: Firebase not ready or no Group ID.");
+        updateGroupUI(); // Ensure UI reflects potentially empty list
+        return;
+    }
+
+    // Detach previous listener before attaching a new one
+    detachMemberListener();
+
+    const membersRef = database.ref(`groups/${currentGroupId}/members`);
+    memberListenerRef = membersRef; // Store ref for detachment
+
+    console.log(`[Member Listener] Attaching listener to: groups/${currentGroupId}/members`);
+
+    // Use 'value' to get the whole list whenever it changes
+    memberListenerCallback = membersRef.on('value', (snapshot) => {
+        const membersData = snapshot.val();
+        groupMembers = []; // Clear local array before repopulating
+        if (membersData) {
+            // Convert Firebase object (keys are IDs) into an array
+            groupMembers = Object.keys(membersData).map(key => ({
+                firebaseKey: key, // Store the Firebase key for potential removal
+                ...membersData[key] // Spread the rest of the member data
+            }));
+            console.log(`[Member Listener] Received ${groupMembers.length} members from Firebase.`);
+        } else {
+            console.log(`[Member Listener] No members found in Firebase for group ${currentGroupId}.`);
+        }
+        // Update the UI with the latest member list
+        updateGroupUI();
+    }, (error) => {
+        console.error(`[Member Listener] Firebase read error for members:`, error);
+        showToast("Error fetching group members.", "error");
+    });
+}
+
+// --- Add function to detach the member listener ---
+function detachMemberListener() {
+    if (memberListenerRef && memberListenerCallback) {
+        try {
+            memberListenerRef.off('value', memberListenerCallback);
+            console.log("[Member Listener] Detached member listener.");
+        } catch(e) {
+            console.error("Error detaching member listener:", e);
+        }
+        memberListenerRef = null;
+        memberListenerCallback = null;
+    }
 }
 
 function leaveGroup() {
-  console.log("Leaving group:", currentGroupId);
-  detachFirebaseListeners();
-  currentGroupId = null;
-  groupMembers = [];
-  localStorage.removeItem('feastfit_currentGroupId');
-  showLandingPage();
-  showToast("You have left the group.", "success");
+    console.log("Leaving group:", currentGroupId);
+    // Detach ALL Firebase listeners (votes and members) FIRST
+    detachFirebaseListeners();
+    detachMemberListener();
+
+    // Clear local storage for this group's members
+    if (currentGroupId) {
+        localStorage.removeItem(`feastfit_group_${currentGroupId}`);
+    }
+    localStorage.removeItem('feastfit_currentGroupId'); // Remove active group marker
+
+    // Reset state
+    currentGroupId = null;
+    groupMembers = [];
+    currentRestaurantOptions = [];
+    resetResultsArea();
+    // Listeners already detached
+
+    // Show landing page
+    showLandingPage();
+    showToast("You have left the group.", "success");
 }
 
 function resetResultsArea() {
@@ -225,23 +307,135 @@ function initializeSliders() {
 
 // ==================== FORM HANDLING ====================
 function initializeForm() {
-    if (!preferencesForm) { console.error("Preferences form not found!"); return; }
-    preferencesForm.addEventListener('submit', (e) => { e.preventDefault(); handleFormSubmit(); });
+    if (!preferencesForm) {
+        console.error("Preferences form not found!");
+        return;
+    }
+    preferencesForm.addEventListener('submit', (e) => {
+        e.preventDefault(); // Prevent default page reload
+        handleFormSubmit();
+    });
 }
-function handleFormSubmit() {
-     const currentLat = document.getElementById('latitude').value; const currentLon = document.getElementById('longitude').value;
-     if (!currentLat || !currentLon) { showToast("Click 'Use Current Location'.", "warning"); if (getLocationBtn) { getLocationBtn.scrollIntoView({ behavior: 'smooth' }); getLocationBtn.focus(); } return; }
-     if (!currentGroupId) { showToast("Join/Create group first.", "error"); return; } // Check group ID
 
-     const formData = new FormData(preferencesForm); const memberId = Date.now();
-     const cuisineCravings = {};
-     document.querySelectorAll('.slider').forEach(s => { if (s.name?.endsWith('_craving')) cuisineCravings[s.name] = parseInt(s.value); });
-     const preferences = { id: memberId, name: formData.get('userName') || `User_${memberId}`, latitude: parseFloat(currentLat), longitude: parseFloat(currentLon), hunger_level: parseInt(formData.get('hunger_level') || '3'), spice_level: parseInt(formData.get('spice_level') || '3'), ...cuisineCravings, diet: formData.get('diet'), drink_preferences: { mocktail: formData.get('mocktail') || null, juice: formData.get('juice') || null, cocktail: formData.get('cocktail') || null, alcohol: formData.get('alcohol') || null } };
-     console.log("Adding member:", preferences); groupMembers.push(preferences); saveGroupToStorage(); updateGroupUI(); showToast(`${preferences.name} added! 🎉`);
-     preferencesForm.reset(); initializeSliders();
-     if (locationStatus) { locationStatus.textContent = 'Click to get location'; locationStatus.style.color = 'inherit'; }
-     setHiddenLocationInputs(null, null); userLatitude = null; userLongitude = null;
-     setTimeout(() => { scrollToSection('group'); }, 500);
+function handleFormSubmit() {
+    // --- Validation Checks ---
+    // 1. Check if a group is active
+    if (!currentGroupId) {
+        showToast("Please create or join a group before submitting preferences.", "error");
+        // Optionally scroll to landing page elements or show landing page
+        // showLandingPage();
+        return;
+    }
+
+    // 2. Check if location was obtained (using the hidden input values now)
+    const currentLatValue = document.getElementById('latitude')?.value; // Use optional chaining
+    const currentLonValue = document.getElementById('longitude')?.value;
+    if (!currentLatValue || !currentLonValue) {
+        showToast("Please click 'Use Current Location' to capture your location before submitting.", "warning");
+        if (getLocationBtn) {
+            getLocationBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            getLocationBtn.focus();
+        }
+        return; // Stop submission
+    }
+    const currentLat = parseFloat(currentLatValue);
+    const currentLon = parseFloat(currentLonValue);
+    // Double-check if parsing resulted in valid numbers
+    if (isNaN(currentLat) || isNaN(currentLon)) {
+         showToast("Invalid location data captured. Please try getting location again.", "error");
+         return;
+    }
+
+
+    // --- Gather Form Data ---
+    const formData = new FormData(preferencesForm);
+    const memberName = formData.get('userName') || `User_${Date.now()}`; // Use timestamp for fallback name
+
+    // Collect Cuisine Cravings from sliders
+    const cuisineCravings = {};
+    document.querySelectorAll('.slider').forEach(slider => {
+        if (slider.name && slider.name.endsWith('_craving')) {
+            cuisineCravings[slider.name] = parseInt(slider.value);
+        }
+    });
+
+    // Structure data object for Firebase (matches backend expectation, no local 'id')
+    const preferences = {
+        name: memberName,
+        latitude: currentLat,
+        longitude: currentLon,
+        hunger_level: parseInt(formData.get('hunger_level') || '3'), // Default to medium
+        spice_level: parseInt(formData.get('spice_level') || '3'), // Default to medium
+        ...cuisineCravings, // Add all craving key-value pairs
+        diet: formData.get('diet'), // 'Veg' or 'Non-Veg'
+        drink_preferences: {
+            // Get value from select elements, provide null if empty string or not selected
+            mocktail: formData.get('mocktail') === "" ? null : formData.get('mocktail'),
+            juice: formData.get('juice') === "" ? null : formData.get('juice'),
+            cocktail: formData.get('cocktail') === "" ? null : formData.get('cocktail'),
+            alcohol: formData.get('alcohol') === "" ? null : formData.get('alcohol')
+        }
+        // 'notes' are excluded as per previous logic, add back if needed:
+        // notes: formData.get('notes')
+    };
+
+    console.log("Submitting member preferences to Firebase:", preferences);
+
+    // --- Push data to Firebase ---
+    if (database && currentGroupId) {
+        const membersRef = database.ref(`groups/${currentGroupId}/members`);
+        // Disable submit button temporarily
+        const submitButton = preferencesForm.querySelector('button[type="submit"]');
+        if(submitButton) submitButton.disabled = true;
+
+        membersRef.push(preferences) // push() auto-generates a unique key in Firebase
+            .then(() => {
+                showToast(`${preferences.name} added to the group! 🎉`, 'success');
+                // Form reset happens *after* successful push
+                resetPreferenceForm();
+            })
+            .catch((error) => {
+                console.error("Firebase push error:", error);
+                showToast("Error adding member. Please try again.", "error");
+            })
+            .finally(() => {
+                 // Re-enable submit button regardless of success/failure
+                 if(submitButton) submitButton.disabled = false;
+            });
+    } else {
+        alert("Cannot add member - Connection issue or no Group ID active.");
+        console.error("Firebase database or currentGroupId is missing.");
+        return; // Stop if database isn't ready
+    }
+
+    // IMPORTANT: Do NOT manually update groupMembers array or call saveGroupToStorage here.
+    // The Firebase listener ('listenForGroupMembers') is now responsible for updating
+    // the local groupMembers array and triggering UI updates via updateGroupUI().
+}
+
+// --- Helper Function to Reset Form ---
+function resetPreferenceForm() {
+    if (preferencesForm) {
+        preferencesForm.reset(); // Resets all form fields to default HTML values
+    }
+    // Manually reset slider visual displays back to default (e.g., 3)
+    document.querySelectorAll('.slider').forEach(slider => {
+         slider.value = 3; // Reset slider position to middle value
+         const valueDisplay = document.getElementById(`${slider.id}Value`);
+         if (valueDisplay) valueDisplay.textContent = '3'; // Reset display span
+    });
+    // Reset location status text and color
+    if (locationStatus) {
+         locationStatus.textContent = 'Click to get location (required for analysis)';
+         locationStatus.style.color = 'inherit'; // Reset color
+    }
+    // Clear hidden location inputs
+    setHiddenLocationInputs(null, null);
+    // Clear stored latitude/longitude for the next submission
+    userLatitude = null;
+    userLongitude = null;
+
+    console.log("Preference form reset.");
 }
 
 // ==================== GROUP MANAGEMENT ====================
@@ -255,12 +449,55 @@ function updateMembersList() {
           return `<div class="member-card" data-member-id="${member.id}"><div class="member-info"><h4>${name}</h4><div class="member-tags"><span class="member-tag">🍽️ H:${h}</span><span class="member-tag">🌶️ S:${s}</span><span class="member-tag">Diet: ${d}</span>${loc}</div></div><div class="member-actions"><button onclick="removeMember(${member.id})" title="Remove ${name}"><i class="fas fa-trash"></i></button></div></div>`;
      }).join('');
 }
-function removeMember(memberId) { groupMembers = groupMembers.filter(m => m.id !== memberId); saveGroupToStorage(); updateGroupUI(); showToast('Member removed'); }
+function removeMember(memberId) {
+    if (!database || !currentGroupId || !memberFirebaseKey) {
+        console.error("Cannot remove member - missing info.");
+        return;
+    }
+    console.log(`Attempting to remove member with key: ${memberFirebaseKey}`);
+
+    const memberRef = database.ref(`groups/${currentGroupId}/members/${memberFirebaseKey}`);
+    memberRef.remove()
+        .then(() => {
+            showToast('Member removed');
+            // No need to manually filter local array or update UI - listener handles it
+        })
+        .catch((error) => {
+            console.error("Firebase remove error:", error);
+            showToast("Error removing member.", "error");
+        });
+}
+
 function clearGroup() {
-     if (groupMembers.length === 0) return;
-     if (confirm('Clear group members and votes?')) {
-         groupMembers = []; saveGroupToStorage(); updateGroupUI(); resetResultsArea(); detachFirebaseListeners();
-         if (database && currentGroupId) { database.ref(`groups/${currentGroupId}/votes`).remove(); } showToast('Group cleared');
+     if (!database || !currentGroupId) return; // Need group ID
+     // Check if there are members locally first (optional)
+     // if (groupMembers.length === 0) return;
+
+     if (confirm('Are you sure you want to clear ALL members and votes for this group?')) {
+         const groupMembersRef = database.ref(`groups/${currentGroupId}/members`);
+         const groupVotesRef = database.ref(`groups/${currentGroupId}/votes`);
+
+         // Remove members from Firebase
+         groupMembersRef.remove()
+             .then(() => {
+                 console.log("Cleared members from Firebase.");
+                 // Also remove votes
+                 return groupVotesRef.remove();
+             })
+             .then(() => {
+                  console.log("Cleared votes from Firebase.");
+                  // Clear local state AFTER successful Firebase removal
+                  groupMembers = [];
+                  saveGroupToStorage(); // Clear local storage for this group
+                  updateGroupUI();
+                  resetResultsArea();
+                  detachFirebaseListeners(); // Clear vote listeners
+                  showToast('Group cleared');
+             })
+             .catch((error) => {
+                  console.error("Error clearing group data from Firebase:", error);
+                  showToast("Error clearing group.", "error");
+             });
      }
 }
 
