@@ -58,7 +58,7 @@ GOOGLE_AI_API_KEY = os.environ.get("GOOGLE_AI_API_KEY", None)
 if not SERPAPI_KEY or not GOOGLE_AI_API_KEY:
     print("WARNING: API keys not found in environment variables!")
     
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+genai.configure(api_key=GOOGLE_AI_API_KEY)
 
 # --- 2. FLASK APP SETUP ---
 app = Flask(__name__)
