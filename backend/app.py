@@ -466,13 +466,6 @@ def analyze_preferences():
         import traceback; traceback.print_exc()
         abort(500, str(e))
 
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', 'https://hungryhive-website.onrender.com')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-    return response
-    
 # --- (Run Server code remains the same) ---
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
