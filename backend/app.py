@@ -60,7 +60,11 @@ if not SERPAPI_KEY or not GOOGLE_AI_API_KEY:
 
 # --- 2. FLASK APP SETUP ---
 app = Flask(__name__)
-CORS(app) # Enable Cross-Origin Resource Sharing
+
+# Allow only your frontend Render URL
+CORS(app, resources={r"/*": {"origins": [
+    "https://hungryhive-website.onrender.com"
+]}}, supports_credentials=True)
 
 # --- 3. HELPER: Calculate Centroid ---
 def calculate_centroid(user_data):
@@ -460,6 +464,13 @@ def analyze_preferences():
         import traceback; traceback.print_exc()
         abort(500, str(e))
 
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'https://hungryhive-website.onrender.com')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+    return response
+    
 # --- (Run Server code remains the same) ---
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
