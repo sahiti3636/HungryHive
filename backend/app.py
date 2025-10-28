@@ -215,7 +215,7 @@ def run_clustering_and_plot(data):
 
     return cluster_summary_list, img_base64
 
-
+ai_model = genai.GenerativeModel("gemini-2.5-flash")
 # --- 5. AI RECOMMENDATION LOGIC ---
 def get_ai_recommendation(analysis_list):
     """
