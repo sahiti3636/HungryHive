@@ -516,11 +516,8 @@ async function generateRecommendations() {
     resetHighlights(); if (randomResultDisplay) randomResultDisplay.textContent = '';
 
     try {
-        const dataToSend = groupMembers.map(m => ({
-  ...m,
-  name: m.name || m.id || "Anonymous"
-}));
-        console.log("Sending data to backend:", dataToSend);
+        const dataToSend = groupMembers.map(({ firebaseKey, ...rest }) => rest); // <<< ENSURE THIS LINE IS CORRECT        
+        console.log("Data being sent to backend (firebaseKey removed):", dataToSend);
         const backendUrl = 'https://hungryhive-549j.onrender.com/analyze';
         const response = await fetch('https://hungryhive-549j.onrender.com/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dataToSend) });
         if (!response.ok) { let err = `Backend Error ${response.status}`; try { const d = await response.json(); err += ` - ${d.error || response.statusText}`;} catch(e){} throw new Error(err); }
