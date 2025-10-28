@@ -106,6 +106,13 @@ def run_clustering_and_plot(data):
     processed_df[preference_cols] = processed_df[preference_cols].fillna(0)
     X_features = processed_df[preference_cols]
 
+    non_numeric_cols = X_features.select_dtypes(exclude=np.number).columns
+    if not non_numeric_cols.empty:
+        print(f"ERROR: Non-numeric columns found before scaling: {list(non_numeric_cols)}")
+        print("Data causing error:\n", X_features[non_numeric_cols].head()) # Show head of bad data
+        # Raise a specific error instead of letting scaler crash
+        raise ValueError(f"Non-numeric data found in columns for scaling: {list(non_numeric_cols)}")
+
     # --- Scaling ---
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X_features)
