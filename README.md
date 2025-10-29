@@ -1,6 +1,7 @@
 # 🍽️ HungryHive - Smart Group Dining Platform
 
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://hungryhive-website.onrender.com)
+Try it out here 👉 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://hungryhive-website.onrender.com)
+
 <!-- [![License](https://img.shields.io/badge/license-MIT-green)]() -->
 
 **HungryHive** is an AI-powered group dining decision platform that eliminates the "Where should we eat?" dilemma. Using machine learning clustering, Google Gemini AI, and real-time location data, it analyzes group preferences and recommends restaurants that maximize everyone's satisfaction.
@@ -101,79 +102,6 @@ Group dining decisions are notoriously difficult:
 - **Backend**: Python 3.8+, pip
 - **Frontend**: Modern web browser (Chrome, Firefox, Safari, Edge)
 - **Optional**: Node.js (for local development server)
-
----
-
-## 🚀 Installation & Setup
-
-### **1. Clone Repository**
-```bash
-git clone https://github.com/yourusername/hungryhive.git
-cd hungryhive
-```
-
-### **2. Backend Setup**
-
-#### Install Python Dependencies
-```bash
-pip install flask flask-cors pandas numpy scikit-learn kneed matplotlib google-generativeai serpapi
-```
-
-#### Set Environment Variables
-Create a `.env` file or export variables:
-```bash
-export SERPAPI_API_KEY="your_serpapi_key_here"
-export GOOGLE_AI_API_KEY="your_google_ai_key_here"
-```
-
-**For Windows (PowerShell):**
-```powershell
-$env:SERPAPI_API_KEY="your_serpapi_key_here"
-$env:GOOGLE_AI_API_KEY="your_google_ai_key_here"
-```
-
-#### Run Backend Server
-```bash
-python app.py
-```
-Backend will run on `http://localhost:5000`
-
-### **3. Frontend Setup**
-
-#### Configure Firebase
-Edit `app.js` and replace the Firebase config (lines 38-46):
-```javascript
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT.firebasedatabase.app",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID",
-    measurementId: "YOUR_MEASUREMENT_ID"
-};
-```
-
-#### Update Backend URL
-In `app.js`, change line 303 (if deploying):
-```javascript
-const backendUrl = 'http://localhost:5000/analyze'; // For local testing
-// OR
-const backendUrl = 'https://your-backend-url.onrender.com/analyze'; // For production
-```
-
-#### Serve Frontend
-**Option A - Simple Python Server:**
-```bash
-python -m http.server 8000
-```
-Open `http://localhost:8000`
-
-**Option B - Node.js (if installed):**
-```bash
-npx serve .
-```
 
 ---
 
