@@ -365,9 +365,8 @@ HUNGRYHIVE/
 │   │   ├── app.js             # Frontend logic (2000+ lines)
 │   │   └── user_preferences.json
 │   ├── images/
-│   │   ├── icon-192.png       # PWA icon (192x192)
-│   │   ├── icon-512.png       # PWA icon (512x512)
-│   │   └── 9805766.jpg        # Landing page background
+│   │   └── 9805766.jpg        # Landing page
+│   │    background
 │   ├── manifest.json          # PWA manifest
 │   └── sw.js                  # Service worker for offline use
 │
