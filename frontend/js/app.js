@@ -441,13 +441,58 @@ function resetPreferenceForm() {
 // ==================== GROUP MANAGEMENT ====================
 function updateGroupUI() { updateMembersList(); }
 function updateMembersList() {
-     if (!memberCountBadge || !membersList) return; memberCountBadge.textContent = groupMembers.length; if (groupCount) groupCount.textContent = groupMembers.length;
-     if (groupMembers.length === 0) { membersList.innerHTML = `<div class="empty-state">...</div>`; return; }
-     membersList.innerHTML = groupMembers.map(member => {
-          const name = member.name || 'Unnamed'; const h = member.hunger_level ?? 'N/A'; const s = member.spice_level ?? 'N/A'; const d = member.diet ?? 'N/A';
-          const loc = member.latitude ? `<span class="member-tag">📍</span>` : '<span class="member-tag" style="color: red;">📍?</span>';
-          return `<div class="member-card" data-member-id="${member.id}"><div class="member-info"><h4>${name}</h4><div class="member-tags"><span class="member-tag">🍽️ H:${h}</span><span class="member-tag">🌶️ S:${s}</span><span class="member-tag">Diet: ${d}</span>${loc}</div></div><div class="member-actions"><button onclick="removeMember(${member.id})" title="Remove ${name}"><i class="fas fa-trash"></i></button></div></div>`;
-     }).join('');
+    // Ensure elements exist
+    if (!memberCountBadge || !membersList) {
+        console.error("Member list or count badge element not found.");
+        return;
+    }
+    memberCountBadge.textContent = groupMembers.length;
+    if (groupCount) groupCount.textContent = groupMembers.length; // Update hero count too
+
+    if (groupMembers.length === 0) {
+        membersList.innerHTML = `<div class="empty-state"><i class="fas fa-user-plus"></i><p>No members yet.</p></div>`;
+        return;
+    }
+
+    // Generate HTML for each member card
+    membersList.innerHTML = groupMembers.map(member => {
+        // Safely access properties, provide defaults if missing
+        const memberName = member.name || 'Unnamed Member';
+        const hungerLevel = member.hunger_level ?? 'N/A';
+        const spiceLevel = member.spice_level ?? 'N/A';
+        const diet = member.diet ?? 'N/A';
+        const hasLocation = member.latitude ? `<span class="member-tag">📍</span>` : '<span class="member-tag" style="color: red;">📍?</span>';
+        
+        // **CRITICAL FIX HERE**
+        // Get the unique key from Firebase (which you added in listenForGroupMembers)
+        const firebaseKey = member.firebaseKey; 
+
+        // Check if firebaseKey exists, otherwise the button won't work
+        if (!firebaseKey) {
+            console.warn("Member object is missing firebaseKey:", member);
+            return ''; // Don't render card if key is missing
+        }
+
+        return `
+        <div class="member-card" data-firebase-key="${firebaseKey}">
+            <div class="member-info">
+                <h4>${memberName}</h4>
+                <div class="member-tags">
+                    <span class="member-tag">🍽️ H:${hungerLevel}</span>
+                    <span class="member-tag">🌶️ S:${spiceLevel}</span>
+                    <span class="member-tag">Diet: ${diet}</span>
+                    ${hasLocation}
+                </div>
+            </div>
+            <div class="member-actions">
+                <button onclick="removeMember('${firebaseKey}')" title="Remove ${memberName}">
+                     <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+        `;
+        // --- END OF FIX ---
+    }).join('');
 }
 function removeMember(memberId) {
     if (!database || !currentGroupId || !memberFirebaseKey) {
