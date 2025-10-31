@@ -207,9 +207,13 @@ def run_clustering_and_plot(data):
     plt.ylabel("PCA Component 2")
     if best_k > 1: plt.legend()
     plt.grid(True)
+
+    # --- FIX ---
+    plt.tight_layout() # <-- ADD THIS LINE
     img_buffer = io.BytesIO()
-    plt.savefig(img_buffer, format='png', bbox_inches='tight')
+    plt.savefig(img_buffer, format='png') # <-- REMOVED bbox_inches='tight'
     plt.close()
+    # -----------
     img_buffer.seek(0)
     img_base64 = base64.b64encode(img_buffer.read()).decode('utf-8')
 
@@ -276,78 +280,6 @@ def get_ai_recommendation(analysis_list):
         # ... (Fallback response) ...
         return { "friendlyMessage": "AI error. Try 'Indian or Italian'?", "recommendation": "Indian or Italian", "searchQuery": "Indian or Italian restaurants near [location]" }
 
-
-# # --- 6. THE API ENDPOINT (Generates URL) ---
-# @app.route('/analyze', methods=['POST'])
-# def analyze_preferences():
-#     try:
-#         user_data = request.json
-#         print("\n--- Received User Data ---")
-#         if not user_data or not isinstance(user_data, list) or len(user_data) == 0:
-#             abort(400, "Invalid or empty data provided.")
-
-#         # Step A: Run ML clustering and get plot
-#         analysis_results_list, plot_image = run_clustering_and_plot(user_data)
-
-#         # Step B: Get AI recommendation (cuisine type & search query template)
-#         ai_recommendation = get_ai_recommendation(analysis_results_list)
-#         print("\n--- AI Recommendation ---")
-#         print(json.dumps(ai_recommendation, indent=2))
-
-#         # Step C: Calculate Centroid
-#         centroid = calculate_centroid(user_data)
-#         print(f"\nCalculated Centroid: {centroid}")
-
-#         # Step D1: Fetch top 5 restaurants using SerpAPI
-#         if centroid:
-#             avg_lat, avg_lon = centroid
-#             cuisine_query = ai_recommendation.get("recommendation", "restaurants")
-#             top5_restaurants = get_top_restaurants_serpapi(avg_lat, avg_lon, cuisine_query, limit=5)
-#         else:
-#             top5_restaurants = []
-
-#         # Step D: Generate Google Maps URL
-#         maps_url = ""
-#         ai_search_query_template = ai_recommendation.get("searchQuery", "restaurants near [location]")
-#         display_recommendation = ai_recommendation.get("recommendation", "restaurants") # For link text
-
-#         # Prepare URL-safe search term by removing placeholder
-#         search_term_only = ai_search_query_template.replace("near [location]", "").strip()
-#         encoded_search_term = quote_plus(search_term_only)
-
-#         if centroid:
-#             avg_lat, avg_lon = centroid
-#             zoom_level = 14
-#             # Use the ll= and z= format for better centering
-#             maps_url = f"https://www.google.com/maps/search/?api=1&query=${encoded_search_term}&ll={avg_lat:.6f},{avg_lon:.6f}&z={zoom_level}"
-#             print(f"Generated Maps URL with Centroid: {maps_url}")
-#         else:
-#             # Fallback to "near me" search if centroid fails
-#             fallback_query = f"{search_term_only} near me"
-#             encoded_fallback_query = quote_plus(fallback_query)
-#             maps_url = f"https://www.google.com/maps/search/?api=1&query=${encoded_fallback_query}"
-#             print("Warning: Could not calculate centroid. Generating 'near me' URL.")
-
-#         # Add the generated URL and update searchQuery for display
-#         ai_recommendation["mapsUrl"] = maps_url
-#         ai_recommendation["searchQuery"] = display_recommendation # Use base term for display
-
-#         # Step E: Send results back to frontend
-#         return jsonify({
-#             "clusterSummary": analysis_results_list,
-#             "plotBase64": plot_image,
-#             "aiRecommendation": ai_recommendation, # Includes mapsUrl and base searchQuery
-#             "topRestaurants": top5_restaurants
-#         })
-
-#     except ValueError as ve:
-#          print(f"Data error: {ve}")
-#          abort(400, f"Data error: {ve}")
-#     except Exception as e:
-#         print(f"Error during analysis: {e}")
-#         import traceback
-#         traceback.print_exc()
-#         abort(500, "Internal server error during analysis.")
 
 def get_top_restaurants_serpapi(lat, lon, query="restaurants", limit=5):
     """
