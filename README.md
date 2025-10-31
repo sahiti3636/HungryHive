@@ -2,6 +2,8 @@
 
 Try it out here 👉 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://hungryhive-website.onrender.com)
 
+👉 [![Watch Demo](https://img.shields.io/badge/YouTube-Demo-red)](https://youtu.be/NGLtT5VmOM8?si=DldEICpkofLDcenR)
+
 <!-- [![License](https://img.shields.io/badge/license-MIT-green)]() -->
 
 **HungryHive** is an AI-powered group dining decision platform that eliminates the "Where should we eat?" dilemma. Using machine learning clustering, Google Gemini AI, and real-time location data, it analyzes group preferences and recommends restaurants that maximize everyone's satisfaction.
